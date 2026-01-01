@@ -1,17 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <style>
+body {
+  margin: 0;
+  padding: 0;
+  background: #f7f7f7;
+  font-family: -apple-system, BlinkMacSystemFont, Tahoma;
+  text-align: center;
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 16px;
+}
+
+h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+#reader {
+  width: 100% !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#result {
+  margin-top: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  font-size: 22px;
+  line-height: 1.8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.price {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1a7f37;
+}
+</style>
 <meta charset="UTF-8">
 <title>استعلام قیمت</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-<body style="font-family:tahoma;text-align:center">
+<body>
 
-<h2>اسکن بارکد</h2>
-<div id="reader" style="width:300px;margin:auto"></div>
-<h3 id="result"></h3>
+<div class="container">
 
+  <h2>📷 اسکن بارکد کالا</h2>
+
+  <div id="reader"></div>
+
+  <div id="result">
+    منتظر اسکن...
+  </div>
+
+</div>
 <script>
+  let lastCode = null;
+let scanLock = false;
+  
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
 fetch(sheetUrl)
@@ -25,16 +77,39 @@ fetch(sheetUrl)
     }));
   });
 
-new Html5Qrcode("reader").start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  code => {
-    const p = products.find(x => x.barcode == code);
-    document.getElementById("result").innerHTML =
-      p ? `🧾 ${p.name}<br>💰 ${p.price} تومان`
-        : "❌ پیدا نشد";
-  }
-);
+const html5QrCode = new Html5Qrcode("reader");
+
+html5QrCode.start(
+  {
+    facingMode: { exact: "environment" }
+  },
+  {
+    fps: 15,
+    qrbox: { width: 250, height: 250 },
+    disableFlip: true,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    }
+  },
+  (code) => {
+  if (scanLock) return;
+  if (code === lastCode) return;
+
+  scanLock = true;
+  lastCode = code;
+
+  const p = products.find(x => x.barcode.trim() === code.trim());
+
+  document.getElementById("result").innerHTML =
+    p
+      ? `📦 ${p.name}<br><span class="price">💰 ${p.price}</span>`
+      : "❌ یافت نشد";
+
+  // بعد از ۱ ثانیه آماده اسکن بعدی
+  setTimeout(() => {
+    scanLock = false;
+  }, 1000);
+}
 </script>
 
 </body>
