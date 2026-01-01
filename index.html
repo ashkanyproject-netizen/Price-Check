@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>استعلام قیمت</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body style="font-family:tahoma;text-align:center">
+
+<h2>اسکن بارکد</h2>
+<div id="reader" style="width:300px;margin:auto"></div>
+<h3 id="result"></h3>
+
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
+
+fetch(sheetUrl)
+  .then(res => res.text())
+  .then(data => {
+    const rows = data.split("\n").map(r => r.split(","));
+    window.products = rows.slice(1).map(r => ({
+      barcode: r[0],
+      name: r[1],
+      price: r[2]
+    }));
+  });
+
+new Html5Qrcode("reader").start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  code => {
+    const p = products.find(x => x.barcode == code);
+    document.getElementById("result").innerHTML =
+      p ? `🧾 ${p.name}<br>💰 ${p.price} تومان`
+        : "❌ پیدا نشد";
+  }
+);
+</script>
+
+</body>
+</html>
