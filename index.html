@@ -87,12 +87,20 @@
       scanner = new Html5Qrcode("reader");
 
       scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          disableFlip: true
-        },
+  { facingMode: "environment" },
+  {
+    fps: 15,
+    qrbox: { width: 280, height: 180 },
+    disableFlip: true,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.QR_CODE
+    ]
+  },
         (code) => {
           const p = products.find(x => x.barcode === code);
 
