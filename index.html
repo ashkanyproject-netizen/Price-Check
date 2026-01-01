@@ -88,18 +88,10 @@
 
       scanner.start(
   { facingMode: "environment" },
-  {
-    fps: 5,
-    qrbox: { width: 320, height: 140 },
-    disableFlip: true,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    },
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.CODE_128
-    ]
-  },
-        (code) => {
+ {
+  fps: 10,
+  qrbox: 250
+}        (code) => {
           const p = products.find(x => x.barcode === code);
 
           document.getElementById("result").innerHTML =
