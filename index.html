@@ -1,138 +1,113 @@
 <!DOCTYPE html>
-<html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="fa">
 <head>
+  <meta charset="UTF-8">
+  <title>اسکن بارکد کالا</title>
+
+  <!-- موبایل -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- اسکنر -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
   <style>
-body {
-  margin: 0;
-  padding: 0;
-  background: #f7f7f7;
-  font-family: -apple-system, BlinkMacSystemFont, Tahoma;
-  text-align: center;
-}
+    body {
+      margin: 0;
+      font-family: Tahoma, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+    }
 
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 16px;
-}
+    h2 {
+      margin-top: 20px;
+    }
 
-h2 {
-  font-size: 22px;
-  margin-bottom: 12px;
-}
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      height: 320px;
+      margin: 20px auto;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
 
-#reader {
-  width: 100% !important;
-  border-radius: 12px;
-  overflow: hidden;
-}
+    #result {
+      margin: 20px auto;
+      padding: 15px;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 10px;
+      font-size: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 
-#result {
-  margin-top: 20px;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  font-size: 22px;
-  line-height: 1.8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.price {
-  font-size: 32px;
-  font-weight: bold;
-  color: #1a7f37;
-}
-</style>
-<meta charset="UTF-8">
-<title>استعلام قیمت</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
-<style>
-  body {
-    margin: 0;
-    font-family: Tahoma;
-    background: #f5f5f5;
-  }
-
-  #reader {
-    width: 100%;
-    max-width: 420px;
-    height: 320px;
-    margin: 20px auto;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  #result {
-    font-size: 22px;
-    margin-top: 15px;
-  }
-</style>
+    .waiting {
+      color: #777;
+      font-size: 18px;
+    }
+  </style>
 </head>
-<body>
 
-<div class="container">
+<body>
 
   <h2>📷 اسکن بارکد کالا</h2>
 
   <div id="reader"></div>
 
-  <div id="result">
-    منتظر اسکن...
+  <div id="result" class="waiting">
+    منتظر اسکن…
   </div>
 
-</div>
-<script>
-  let lastCode = null;
-let scanLock = false;
-  
-const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
+  <script>
+    /***********************
+     🔴 فقط این لینک رو عوض کن
+    ************************/
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
+    // مثال:
+    // https://docs.google.com/spreadsheets/d/XXXX/export?format=csv
 
-fetch(sheetUrl)
-  .then(res => res.text())
-  .then(data => {
-    const rows = data.split("\n").map(r => r.split(","));
-    window.products = rows.slice(1).map(r => ({
-      barcode: r[0],
-      name: r[1],
-      price: r[2]
-    }));
-  });
+    let products = [];
+    let scanner;
 
-const html5QrCode = new Html5Qrcode("reader");
+    // گرفتن CSV
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(data => {
+        const rows = data.trim().split("\n").map(r => r.split(","));
+        products = rows.slice(1).map(r => ({
+          barcode: r[0]?.trim(),
+          name: r[1]?.trim(),
+          price: r[2]?.trim()
+        }));
+      });
 
-html5QrCode.start(
-  {
-    facingMode: { exact: "environment" }
-  },
-  {
-    fps: 15,
-    qrbox: { width: 250, height: 250 },
-    disableFlip: true,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    }
-  },
-  (code) => {
-  if (scanLock) return;
-  if (code === lastCode) return;
+    // استارت اسکن بعد از لود کامل صفحه
+    window.onload = () => {
+      scanner = new Html5Qrcode("reader");
 
-  scanLock = true;
-  lastCode = code;
+      scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          disableFlip: true
+        },
+        (code) => {
+          const p = products.find(x => x.barcode === code);
 
-  const p = products.find(x => x.barcode.trim() === code.trim());
+          document.getElementById("result").innerHTML =
+            p
+              ? `📦 ${p.name}<br>💰 ${p.price} تومان`
+              : "❌ کالا پیدا نشد";
 
-  document.getElementById("result").innerHTML =
-    p
-      ? `📦 ${p.name}<br><span class="price">💰 ${p.price}</span>`
-      : "❌ یافت نشد";
-
-  // بعد از ۱ ثانیه آماده اسکن بعدی
-  setTimeout(() => {
-    scanLock = false;
-  }, 1000);
-}
-</script>
+          // ویبره (اگه پشتیبانی کنه)
+          if (navigator.vibrate) navigator.vibrate(100);
+        },
+        () => {}
+      );
+    };
+  </script>
 
 </body>
 </html>
