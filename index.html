@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <title>اسکن بارکد کالا</title>
 
-  <!-- موبایل -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- اسکنر -->
+  <!-- کتابخانه اسکن -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -19,27 +18,26 @@
     }
 
     h2 {
-      margin-top: 20px;
+      margin: 20px 0 10px;
     }
 
     #reader {
       width: 100%;
       max-width: 420px;
       height: 320px;
-      margin: 20px auto;
+      margin: 0 auto;
+      background: #000;
       border-radius: 12px;
       overflow: hidden;
-      background: #000;
     }
 
     #result {
-      margin: 20px auto;
+      margin: 15px auto;
       padding: 15px;
       max-width: 420px;
       background: #fff;
       border-radius: 10px;
       font-size: 22px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .waiting {
@@ -60,22 +58,20 @@
   </div>
 
   <script>
-    /***********************
-     🔴 فقط این لینک رو عوض کن
-    ************************/
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
-    // مثال:
-    // https://docs.google.com/spreadsheets/d/XXXX/export?format=csv
+    /***************
+     فقط اگر خواستی CSV رو عوض کن
+    ***************/
+    const sheetUrl =
+      "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
     let products = [];
-    let scanner;
-    let scanning = true;
+    let scanner = null;
 
-    // گرفتن CSV
+    // گرفتن لیست قیمت
     fetch(sheetUrl)
-      .then(res => res.text())
-      .then(data => {
-        const rows = data.trim().split("\n").map(r => r.split(","));
+      .then(r => r.text())
+      .then(text => {
+        const rows = text.trim().split("\n").map(r => r.split(","));
         products = rows.slice(1).map(r => ({
           barcode: r[0]?.trim(),
           name: r[1]?.trim(),
@@ -84,35 +80,29 @@
       });
 
     // استارت اسکن بعد از لود کامل صفحه
-    window.onload = () => {
+    window.onload = function () {
       scanner = new Html5Qrcode("reader");
 
       scanner.start(
-  { facingMode: "environment" },
-  {
-    fps: 10,
-    qrbox: 250
-  },
-  (code) => {
-  if (!scanning) return;
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250
+        },
+        function (code) {
+          const p = products.find(x => x.barcode === code);
 
-  scanning = false;
+          document.getElementById("result").innerHTML =
+            p
+              ? "📦 " + p.name + "<br>💰 " + p.price + " تومان"
+              : "❌ کالا پیدا نشد";
 
-  const p = products.find(x => x.barcode === code);
-
-  document.getElementById("result").innerHTML =
-    p
-      ? `📦 ${p.name}<br>💰 ${p.price} تومان`
-      : "❌ کالا پیدا نشد";
-
-  if (navigator.vibrate) navigator.vibrate(100);
-
-  setTimeout(() => {
-    scanning = true;
-  }, 1500);
-},
-  () => {}
-);
+          if (navigator.vibrate) navigator.vibrate(100);
+        },
+        function (error) {
+          // عمداً خالی
+        }
+      );
     };
   </script>
 
