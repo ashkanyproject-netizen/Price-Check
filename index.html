@@ -89,16 +89,14 @@
       scanner.start(
   { facingMode: "environment" },
   {
-    fps: 15,
-    qrbox: { width: 280, height: 180 },
+    fps: 5,
+    qrbox: { width: 320, height: 140 },
     disableFlip: true,
     experimentalFeatures: {
       useBarCodeDetectorIfSupported: true
     },
     formatsToSupport: [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.QR_CODE
+      Html5QrcodeSupportedFormats.CODE_128
     ]
   },
         (code) => {
