@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8" />
-  <title>اسکن بارکد کالا</title>
+  <meta charset="UTF-8">
+  <title>تست دوربین</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- ZXing -->
-  <script src="https://unpkg.com/@zxing/browser@latest"></script>
+  <script src="https://unpkg.com/@zxing/browser@0.1.1"></script>
 
   <style>
     body {
       margin: 0;
       font-family: Tahoma, sans-serif;
-      background: #f2f2f2;
+      background: #f3f3f3;
       text-align: center;
     }
 
@@ -21,28 +19,16 @@
       margin: 15px 0;
     }
 
-    #video {
+    video {
       width: 100%;
       max-width: 420px;
-      height: 320px;
+      height: 300px;
       background: black;
-      border-radius: 14px;
-      margin: 0 auto;
-      display: block;
-    }
-
-    #result {
-      margin: 15px auto;
-      max-width: 420px;
-      background: white;
-      padding: 15px;
       border-radius: 12px;
-      font-size: 22px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .waiting {
-      color: #777;
+    #msg {
+      margin: 15px;
       font-size: 18px;
     }
   </style>
@@ -50,67 +36,37 @@
 
 <body>
 
-  <h2>📦 اسکن بارکد کالا</h2>
+  <h2>📷 تست دوربین واقعی</h2>
 
-  <video id="video"></video>
+  <video
+    id="video"
+    playsinline
+    muted
+    autoplay
+  ></video>
 
-  <div id="result" class="waiting">
-    منتظر اسکن…
-  </div>
+  <div id="msg">در حال درخواست دوربین…</div>
 
   <script>
-    /***************
-     فقط در صورت نیاز CSV رو عوض کن
-    ***************/
-    const sheetUrl =
-      "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
-
-    let products = [];
-    let lastCode = null;
-    let lastScanTime = 0;
-
-    // گرفتن CSV
-    fetch(sheetUrl)
-      .then(r => r.text())
-      .then(text => {
-        const rows = text.trim().split("\n").map(r => r.split(","));
-        products = rows.slice(1).map(r => ({
-          barcode: r[0]?.trim(),
-          name: r[1]?.trim(),
-          price: r[2]?.trim()
-        }));
-      });
-
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-
     window.onload = async () => {
       const video = document.getElementById("video");
+      const reader = new ZXing.BrowserMultiFormatReader();
 
-      await codeReader.decodeFromVideoDevice(
-        null,
-        video,
-        (result, err) => {
-          if (!result) return;
-
-          const code = result.text;
-          const now = Date.now();
-
-          // جلوگیری از اسکن تکراری پشت‌سرهم
-          if (code === lastCode && now - lastScanTime < 1500) return;
-
-          lastCode = code;
-          lastScanTime = now;
-
-          const p = products.find(x => x.barcode === code);
-
-          document.getElementById("result").innerHTML =
-            p
-              ? `📦 ${p.name}<br>💰 ${p.price} تومان`
-              : "❌ کالا پیدا نشد";
-
-          if (navigator.vibrate) navigator.vibrate(120);
-        }
-      );
+      try {
+        await reader.decodeFromVideoDevice(
+          null,
+          video,
+          (result, err) => {
+            if (result) {
+              document.getElementById("msg").innerText =
+                "✅ خوانده شد: " + result.text;
+            }
+          }
+        );
+      } catch (e) {
+        document.getElementById("msg").innerText =
+          "❌ خطا در دسترسی به دوربین";
+      }
     };
   </script>
 
