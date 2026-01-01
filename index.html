@@ -69,6 +69,7 @@
 
     let products = [];
     let scanner;
+    let scanning = true;
 
     // گرفتن CSV
     fetch(sheetUrl)
@@ -93,15 +94,23 @@
     qrbox: 250
   },
   (code) => {
-    const p = products.find(x => x.barcode === code);
+  if (!scanning) return;
 
-    document.getElementById("result").innerHTML =
-      p
-        ? `📦 ${p.name}<br>💰 ${p.price} تومان`
-        : "❌ کالا پیدا نشد";
+  scanning = false;
 
-    if (navigator.vibrate) navigator.vibrate(100);
-  },
+  const p = products.find(x => x.barcode === code);
+
+  document.getElementById("result").innerHTML =
+    p
+      ? `📦 ${p.name}<br>💰 ${p.price} تومان`
+      : "❌ کالا پیدا نشد";
+
+  if (navigator.vibrate) navigator.vibrate(100);
+
+  setTimeout(() => {
+    scanning = true;
+  }, 1500);
+},
   () => {}
 );
     };
