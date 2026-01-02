@@ -1,74 +1,41 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>تست دوربین</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script src="https://unpkg.com/@zxing/browser@0.1.1"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Tahoma, sans-serif;
-      background: #f3f3f3;
-      text-align: center;
-    }
-
-    h2 {
-      margin: 15px 0;
-    }
-
-    video {
-      width: 100%;
-      max-width: 420px;
-      height: 300px;
-      background: black;
-      border-radius: 12px;
-    }
-
-    #msg {
-      margin: 15px;
-      font-size: 18px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>استعلام قیمت</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
 </head>
+<body style="font-family:tahoma;text-align:center">
 
-<body>
+<h2>اسکن بارکد</h2>
+<div id="reader" style="width:300px;margin:auto"></div>
+<h3 id="result"></h3>
 
-  <h2>📷 تست دوربین واقعی</h2>
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
-  <video
-    id="video"
-    playsinline
-    muted
-    autoplay
-  ></video>
+fetch(sheetUrl)
+  .then(res => res.text())
+  .then(data => {
+    const rows = data.split("\n").map(r => r.split(","));
+    window.products = rows.slice(1).map(r => ({
+      barcode: r[0],
+      name: r[1],
+      price: r[2]
+    }));
+  });
 
-  <div id="msg">در حال درخواست دوربین…</div>
-
-  <script>
-    window.onload = async () => {
-      const video = document.getElementById("video");
-      const reader = new ZXing.BrowserMultiFormatReader();
-
-      try {
-        await reader.decodeFromVideoDevice(
-          null,
-          video,
-          (result, err) => {
-            if (result) {
-              document.getElementById("msg").innerText =
-                "✅ خوانده شد: " + result.text;
-            }
-          }
-        );
-      } catch (e) {
-        document.getElementById("msg").innerText =
-          "❌ خطا در دسترسی به دوربین";
-      }
-    };
-  </script>
+new Html5Qrcode("reader").start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  code => {
+    const p = products.find(x => x.barcode == code);
+    document.getElementById("result").innerHTML =
+      p ? `🧾 ${p.name}<br>💰 ${p.price} تومان`
+        : "❌ پیدا نشد";
+  }
+);
+</script>
 
 </body>
 </html>
