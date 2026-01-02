@@ -152,6 +152,22 @@
 </footer>
 
 <script>
+  function normalizeText(text) {
+  if (!text) return "";
+
+  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+  const englishDigits = "0123456789";
+
+  return text
+    .toString()
+    .replace(/[\u200c\u200f\u202a-\u202e]/g, "")
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[۰-۹]/g, d => englishDigits[persianDigits.indexOf(d)])
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
   const sheetUrl =
     "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
@@ -229,9 +245,10 @@
     .then(data => {
       const rows = data.trim().split("\n").map(r => r.split(","));
       products = rows.slice(1).map(r => ({
-        barcode: r[0]?.trim(),
-        name: r[1]?.trim(),
-        price: r[2]?.trim()
+        barcode: normalizeText(r[0]),
+name: normalizeText(r[1]),
+rawName: r[1],
+price: r[2]
       }));
     });
 </script>
