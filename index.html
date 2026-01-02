@@ -12,9 +12,11 @@
 <style>
   body {
     margin: 0;
-    background: #f6f4fb;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f6f4fb 0%, #ede7f6 100%);
     font-family: 'Lalezar', Tahoma, sans-serif;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
   }
 
   header {
@@ -22,15 +24,16 @@
     color: #fff;
     padding: 18px;
     font-size: 26px;
+    text-align: center;
   }
 
   .container {
     max-width: 420px;
-    margin: 25px auto;
+    margin: 20px auto;
     background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
 
   input {
@@ -40,8 +43,8 @@
     border-radius: 12px;
     border: 1px solid #ccc;
     text-align: center;
-    margin-bottom: 12px;
-    font-family: Tahoma, sans-serif; /* اعداد انگلیسی */
+    margin-bottom: 10px;
+    font-family: Tahoma, sans-serif;
   }
 
   button {
@@ -54,16 +57,14 @@
     color: #fff;
     cursor: pointer;
     font-family: 'Lalezar', sans-serif;
-  }
-
-  button:active {
-    transform: scale(0.98);
+    margin-top: 5px;
   }
 
   #result {
-    margin-top: 20px;
+    margin-top: 18px;
     font-size: 22px;
     line-height: 1.9;
+    text-align: center;
   }
 
   .price {
@@ -76,9 +77,40 @@
     color: #c62828;
   }
 
-  .item {
-    border-bottom: 1px solid #eee;
-    padding: 10px 0;
+  /* پیشنهاد نام کالا */
+  .suggestions {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    background: #fff;
+    max-height: 180px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .suggestions div {
+    padding: 10px;
+    cursor: pointer;
+    font-family: Tahoma, sans-serif;
+  }
+
+  .suggestions div:hover {
+    background: #f3e5f5;
+  }
+
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 15px;
+    font-size: 16px;
+    color: #555;
+  }
+
+  footer a {
+    color: #6a1b9a;
+    text-decoration: none;
+    font-family: Tahoma, sans-serif;
   }
 </style>
 </head>
@@ -102,12 +134,22 @@
     type="text"
     id="name"
     placeholder="نام کالا"
+    autocomplete="off"
   >
+
+  <div id="suggestions" class="suggestions"></div>
 
   <button onclick="searchProduct()">جستجو</button>
 
   <div id="result">بارکد یا نام کالا را وارد کنید</div>
 </div>
+
+<footer>
+  📸 اینستاگرام فروشگاه:
+  <a href="https://instagram.com/zanbilofficialll" target="_blank">
+    @zanbilofficialll
+  </a>
+</footer>
 
 <script>
   const sheetUrl =
@@ -123,8 +165,6 @@
     const barcode = document.getElementById("barcode").value.trim();
     const name = document.getElementById("name").value.trim().toLowerCase();
     const resultBox = document.getElementById("result");
-
-    if (!barcode && !name) return;
 
     let results = [];
 
@@ -142,19 +182,48 @@
     }
 
     resultBox.innerHTML = results.map(p => `
-      <div class="item">
-        🧾 ${p.name}<br>
-        <span class="price">${formatPrice(p.price)} ریال</span>
-      </div>
-    `).join("");
+      🧾 ${p.name}<br>
+      <span class="price">${formatPrice(p.price)} ریال</span>
+    `).join("<hr>");
   }
 
-  // Enter = جستجو
+  // پیشنهاد نام کالا
+  const nameInput = document.getElementById("name");
+  const suggestionsBox = document.getElementById("suggestions");
+
+  nameInput.addEventListener("input", () => {
+    const val = nameInput.value.toLowerCase();
+    if (!val) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    const matches = products.filter(p =>
+      p.name.toLowerCase().includes(val)
+    ).slice(0, 6);
+
+    if (matches.length === 0) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    suggestionsBox.innerHTML = matches.map(p =>
+      `<div onclick="selectName('${p.name}')">${p.name}</div>`
+    ).join("");
+
+    suggestionsBox.style.display = "block";
+  });
+
+  function selectName(name) {
+    nameInput.value = name;
+    suggestionsBox.style.display = "none";
+    searchProduct();
+  }
+
   document.addEventListener("keyup", e => {
     if (e.key === "Enter") searchProduct();
   });
 
-  // دریافت CSV
   fetch(sheetUrl)
     .then(res => res.text())
     .then(data => {
