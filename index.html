@@ -6,58 +6,54 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- فونت لاله‌زار -->
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
 
 <style>
   body {
     margin: 0;
-    font-family: Tahoma, sans-serif;
-    background: #f2f2f2;
+    background: #f6f4fb;
+    font-family: 'Lalezar', Tahoma, sans-serif;
     text-align: center;
   }
 
-  h2 {
-    margin: 15px 0;
-    font-size: 22px;
+  header {
+    background: #6a1b9a;
+    color: #fff;
+    padding: 18px;
+    font-size: 26px;
   }
 
-  #reader {
-    width: 100%;
-    max-width: 360px;
-    margin: 15px auto;
-    border-radius: 14px;
-    overflow: hidden;
-    background: #000;
-  }
-
-  .box {
-    max-width: 360px;
-    margin: 10px auto;
+  .container {
+    max-width: 420px;
+    margin: 25px auto;
     background: #fff;
-    padding: 15px;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
   input {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    border-radius: 10px;
+    padding: 14px;
+    font-size: 20px;
+    border-radius: 12px;
     border: 1px solid #ccc;
-    margin-bottom: 10px;
     text-align: center;
+    margin-bottom: 12px;
+    font-family: Tahoma, sans-serif; /* اعداد انگلیسی */
   }
 
   button {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
+    padding: 14px;
+    font-size: 20px;
     border: none;
-    border-radius: 10px;
-    background: #1976d2;
+    border-radius: 12px;
+    background: #7b1fa2;
     color: #fff;
     cursor: pointer;
+    font-family: 'Lalezar', sans-serif;
   }
 
   button:active {
@@ -65,39 +61,52 @@
   }
 
   #result {
-    margin-top: 15px;
+    margin-top: 20px;
     font-size: 22px;
-    line-height: 1.8;
+    line-height: 1.9;
   }
 
   .price {
-    font-size: 26px;
-    font-weight: bold;
+    font-size: 28px;
     color: #2e7d32;
+    font-family: Tahoma, sans-serif;
   }
 
   .notfound {
     color: #c62828;
+  }
+
+  .item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
   }
 </style>
 </head>
 
 <body>
 
-<h2>📷 اسکن یا ورود دستی بارکد</h2>
+<header>
+  استعلام قیمت
+</header>
 
-<div id="reader"></div>
+<div class="container">
 
-<div class="box">
   <input
     type="text"
-    id="manual"
-    placeholder="بارکد را دستی وارد کنید"
+    id="barcode"
+    placeholder="بارکد کالا"
     inputmode="numeric"
   >
-  <button onclick="searchBarcode()">🔍 جستجوی قیمت</button>
 
-  <div id="result">منتظر اسکن…</div>
+  <input
+    type="text"
+    id="name"
+    placeholder="نام کالا"
+  >
+
+  <button onclick="searchProduct()">جستجو</button>
+
+  <div id="result">بارکد یا نام کالا را وارد کنید</div>
 </div>
 
 <script>
@@ -106,30 +115,46 @@
 
   let products = [];
 
-  // جداکننده سه‌رقمی
   function formatPrice(num) {
-    return Number(num).toLocaleString("fa-IR");
+    return Number(num).toLocaleString("en-US");
   }
 
-  // نمایش نتیجه
-  function showResult(code) {
-    const p = products.find(x => x.barcode == code);
+  function searchProduct() {
+    const barcode = document.getElementById("barcode").value.trim();
+    const name = document.getElementById("name").value.trim().toLowerCase();
+    const resultBox = document.getElementById("result");
 
-    document.getElementById("result").innerHTML =
-      p
-        ? `🧾 ${p.name}<br><span class="price">💰 ${formatPrice(p.price)} تومان</span>`
-        : `<span class="notfound">❌ کالا پیدا نشد</span>`;
+    if (!barcode && !name) return;
 
-    if (navigator.vibrate) navigator.vibrate(80);
+    let results = [];
+
+    if (barcode) {
+      results = products.filter(p => p.barcode === barcode);
+    } else if (name) {
+      results = products.filter(p =>
+        p.name.toLowerCase().includes(name)
+      );
+    }
+
+    if (results.length === 0) {
+      resultBox.innerHTML = `<span class="notfound">❌ کالا پیدا نشد</span>`;
+      return;
+    }
+
+    resultBox.innerHTML = results.map(p => `
+      <div class="item">
+        🧾 ${p.name}<br>
+        <span class="price">${formatPrice(p.price)} ریال</span>
+      </div>
+    `).join("");
   }
 
-  // جستجوی دستی
-  function searchBarcode() {
-    const code = document.getElementById("manual").value.trim();
-    if (code) showResult(code);
-  }
+  // Enter = جستجو
+  document.addEventListener("keyup", e => {
+    if (e.key === "Enter") searchProduct();
+  });
 
-  // گرفتن CSV
+  // دریافت CSV
   fetch(sheetUrl)
     .then(res => res.text())
     .then(data => {
@@ -140,13 +165,6 @@
         price: r[2]?.trim()
       }));
     });
-
-  // اسکنر
-  new Html5Qrcode("reader").start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    code => showResult(code)
-  );
 </script>
 
 </body>
