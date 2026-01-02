@@ -1,40 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="fa">
 <head>
 <meta charset="UTF-8">
 <title>استعلام قیمت</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-<body style="font-family:tahoma;text-align:center">
 
-<h2>اسکن بارکد</h2>
-<div id="reader" style="width:300px;margin:auto"></div>
-<h3 id="result"></h3>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Tahoma, sans-serif;
+    background: #f2f2f2;
+    text-align: center;
+  }
+
+  h2 {
+    margin: 15px 0;
+    font-size: 22px;
+  }
+
+  #reader {
+    width: 100%;
+    max-width: 360px;
+    margin: 15px auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .box {
+    max-width: 360px;
+    margin: 10px auto;
+    background: #fff;
+    padding: 15px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #1976d2;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  #result {
+    margin-top: 15px;
+    font-size: 22px;
+    line-height: 1.8;
+  }
+
+  .price {
+    font-size: 26px;
+    font-weight: bold;
+    color: #2e7d32;
+  }
+
+  .notfound {
+    color: #c62828;
+  }
+</style>
+</head>
+
+<body>
+
+<h2>📷 اسکن یا ورود دستی بارکد</h2>
+
+<div id="reader"></div>
+
+<div class="box">
+  <input
+    type="text"
+    id="manual"
+    placeholder="بارکد را دستی وارد کنید"
+    inputmode="numeric"
+  >
+  <button onclick="searchBarcode()">🔍 جستجوی قیمت</button>
+
+  <div id="result">منتظر اسکن…</div>
+</div>
 
 <script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
+  const sheetUrl =
+    "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
-fetch(sheetUrl)
-  .then(res => res.text())
-  .then(data => {
-    const rows = data.split("\n").map(r => r.split(","));
-    window.products = rows.slice(1).map(r => ({
-      barcode: r[0],
-      name: r[1],
-      price: r[2]
-    }));
-  });
+  let products = [];
 
-new Html5Qrcode("reader").start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  code => {
-    const p = products.find(x => x.barcode == code);
-    document.getElementById("result").innerHTML =
-      p ? `🧾 ${p.name}<br>💰 ${p.price} تومان`
-        : "❌ پیدا نشد";
+  // جداکننده سه‌رقمی
+  function formatPrice(num) {
+    return Number(num).toLocaleString("fa-IR");
   }
-);
+
+  // نمایش نتیجه
+  function showResult(code) {
+    const p = products.find(x => x.barcode == code);
+
+    document.getElementById("result").innerHTML =
+      p
+        ? `🧾 ${p.name}<br><span class="price">💰 ${formatPrice(p.price)} تومان</span>`
+        : `<span class="notfound">❌ کالا پیدا نشد</span>`;
+
+    if (navigator.vibrate) navigator.vibrate(80);
+  }
+
+  // جستجوی دستی
+  function searchBarcode() {
+    const code = document.getElementById("manual").value.trim();
+    if (code) showResult(code);
+  }
+
+  // گرفتن CSV
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(data => {
+      const rows = data.trim().split("\n").map(r => r.split(","));
+      products = rows.slice(1).map(r => ({
+        barcode: r[0]?.trim(),
+        name: r[1]?.trim(),
+        price: r[2]?.trim()
+      }));
+    });
+
+  // اسکنر
+  new Html5Qrcode("reader").start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    code => showResult(code)
+  );
 </script>
 
 </body>
