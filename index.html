@@ -171,9 +171,13 @@
     if (barcode) {
       results = products.filter(p => p.barcode === barcode);
     } else if (name) {
-      results = products.filter(p =>
-        p.name.toLowerCase().includes(name)
-      );
+      const words = name.split(" ").filter(w => w);
+
+results = products.filter(p => {
+  return words.every(word =>
+    p.name.toLowerCase().includes(word)
+  );
+});
     }
 
     if (results.length === 0) {
