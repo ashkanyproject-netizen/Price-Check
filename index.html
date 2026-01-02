@@ -1,195 +1,240 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>استعلام قیمت</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>استعلام قیمت</title>
 
-  <!-- فونت لاله‌زار -->
-  <link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: "Lalezar", sans-serif;
-      background: linear-gradient(135deg, #ffffff, #f3e8ff);
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
+<!-- فونت لاله‌زار -->
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap" rel="stylesheet">
 
-    h1 {
-      color: #6b21a8;
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f6f4fb 0%, #ede7f6 100%);
+    font-family: 'Lalezar', Tahoma, sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
 
-    .box {
-      background: white;
-      max-width: 420px;
-      margin: auto;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
+  header {
+    background: #6a1b9a;
+    color: #fff;
+    padding: 18px;
+    font-size: 26px;
+    text-align: center;
+  }
 
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 12px;
-      font-size: 18px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      outline: none;
-    }
+  .container {
+    max-width: 420px;
+    margin: 20px auto;
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
 
-    input:focus {
-      border-color: #9333ea;
-    }
+  input {
+    width: 100%;
+    padding: 14px;
+    font-size: 20px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+    margin-bottom: 10px;
+    font-family: Tahoma, sans-serif;
+  }
 
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #7c3aed;
-      color: white;
-      cursor: pointer;
-    }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 20px;
+    border: none;
+    border-radius: 12px;
+    background: #7b1fa2;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Lalezar', sans-serif;
+    margin-top: 5px;
+  }
 
-    button:hover {
-      background: #6d28d9;
-    }
+  #result {
+    margin-top: 18px;
+    font-size: 22px;
+    line-height: 1.9;
+    text-align: center;
+  }
 
-    .result {
-      margin-top: 20px;
-      text-align: right;
-    }
+  .price {
+    font-size: 28px;
+    color: #2e7d32;
+    font-family: Tahoma, sans-serif;
+  }
 
-    .item {
-      background: #faf5ff;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      font-size: 17px;
-    }
+  .notfound {
+    color: #c62828;
+  }
 
-    .price {
-      color: #16a34a;
-      font-size: 20px;
-      margin-top: 6px;
-    }
+  /* پیشنهاد نام کالا */
+  .suggestions {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    background: #fff;
+    max-height: 180px;
+    overflow-y: auto;
+    display: none;
+  }
 
-    .notfound {
-      color: #dc2626;
-      font-size: 18px;
-      margin-top: 20px;
-      text-align: center;
-    }
-  </style>
+  .suggestions div {
+    padding: 10px;
+    cursor: pointer;
+    font-family: Tahoma, sans-serif;
+  }
+
+  .suggestions div:hover {
+    background: #f3e5f5;
+  }
+
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 15px;
+    font-size: 16px;
+    color: #555;
+  }
+
+  footer a {
+    color: #6a1b9a;
+    text-decoration: none;
+    font-family: Tahoma, sans-serif;
+  }
+</style>
 </head>
+
 <body>
 
-<h1>استعلام قیمت</h1>
+<header>
+  استعلام قیمت
+</header>
 
-<div class="box">
-  <input id="barcode" placeholder="کد کالا (اختیاری)">
-  <input id="name" placeholder="نام یا مدل کالا">
+<div class="container">
+
+  <input
+    type="text"
+    id="barcode"
+    placeholder="بارکد کالا"
+    inputmode="numeric"
+  >
+
+  <input
+    type="text"
+    id="name"
+    placeholder="نام کالا"
+    autocomplete="off"
+  >
+
+  <div id="suggestions" class="suggestions"></div>
+
   <button onclick="searchProduct()">جستجو</button>
 
-  <div id="result" class="result"></div>
+  <div id="result">بارکد یا نام کالا را وارد کنید</div>
 </div>
+
+<footer>
+  📸 اینستاگرام فروشگاه:
+  <a href="https://instagram.com/zanbilofficialll" target="_blank">
+    @zanbilofficialll
+  </a>
+</footer>
 
 <script>
   const sheetUrl =
-    "https://docs.google.com/spreadsheets/d/XXXXX/export?format=csv"; 
-  // ↑ لینک شیت خودتو اینجا بذار
+    "https://docs.google.com/spreadsheets/d/1fHjsbAzLQQhbMAMzjvYt2d6LMuBhpBRU98gO30Xdl-s/export?format=csv";
 
   let products = [];
-
-  function normalizeText(text) {
-    return text
-      .toString()
-      .trim()
-      .replace(/ي/g, "ی")
-      .replace(/ك/g, "ک")
-      .replace(/\s+/g, " ")
-      .toLowerCase();
-  }
 
   function formatPrice(num) {
     return Number(num).toLocaleString("en-US");
   }
 
-  fetch(sheetUrl)
-    .then(res => res.text())
-    .then(data => {
-      const rows = data.split("\n").map(r => r.split(","));
-      products = rows.slice(1).map(r => ({
-        barcode: r[0]?.trim(),
-        name: normalizeText(r[1]),
-        rawName: r[1],
-        price: r[2]
-      }));
-    });
-
   function searchProduct() {
-    const barcodeInput = document.getElementById("barcode").value.trim();
-    const nameInput = normalizeText(
-      document.getElementById("name").value
-    );
-
+    const barcode = document.getElementById("barcode").value.trim();
+    const name = document.getElementById("name").value.trim().toLowerCase();
     const resultBox = document.getElementById("result");
-    resultBox.innerHTML = "";
 
     let results = [];
 
-    if (barcodeInput) {
-      results = products.filter(p => p.barcode === barcodeInput);
-    } else if (nameInput) {
-      const words = nameInput.split(" ").filter(w => w.length > 1);
-
+    if (barcode) {
+      results = products.filter(p => p.barcode === barcode);
+    } else if (name) {
       results = products.filter(p =>
-        words.every(w => p.name.includes(w))
+        p.name.toLowerCase().includes(name)
       );
     }
 
     if (results.length === 0) {
-      resultBox.innerHTML =
-        `<div class="notfound">❌ موردی پیدا نشد</div>`;
+      resultBox.innerHTML = `<span class="notfound">❌ کالا پیدا نشد</span>`;
       return;
     }
 
-    results.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <div>${p.rawName}</div>
-        <div class="price">${formatPrice(p.price)} ریال</div>
-      `;
-      resultBox.appendChild(div);
-    });
+    resultBox.innerHTML = results.map(p => `
+      🧾 ${p.name}<br>
+      <span class="price">${formatPrice(p.price)} ریال</span>
+    `).join("<hr>");
   }
+
+  // پیشنهاد نام کالا
+  const nameInput = document.getElementById("name");
+  const suggestionsBox = document.getElementById("suggestions");
+
+  nameInput.addEventListener("input", () => {
+    const val = nameInput.value.toLowerCase();
+    if (!val) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    const matches = products.filter(p =>
+      p.name.toLowerCase().includes(val)
+    ).slice(0, 6);
+
+    if (matches.length === 0) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    suggestionsBox.innerHTML = matches.map(p =>
+      `<div onclick="selectName('${p.name}')">${p.name}</div>`
+    ).join("");
+
+    suggestionsBox.style.display = "block";
+  });
+
+  function selectName(name) {
+    nameInput.value = name;
+    suggestionsBox.style.display = "none";
+    searchProduct();
+  }
+
+  document.addEventListener("keyup", e => {
+    if (e.key === "Enter") searchProduct();
+  });
+
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(data => {
+      const rows = data.trim().split("\n").map(r => r.split(","));
+      products = rows.slice(1).map(r => ({
+        barcode: r[0]?.trim(),
+        name: r[1]?.trim(),
+        price: r[2]?.trim()
+      }));
+    });
 </script>
-<footer style="
-  margin-top: 40px;
-  padding: 16px;
-  text-align: center;
-  color: #6b21a8;
-  font-size: 18px;
-">
-  <div style="margin-bottom: 6px;">اینستاگرام فروشگاه</div>
-  <a 
-    href="https://instagram.com/zanbilofficialll" 
-    target="_blank"
-    style="
-      text-decoration: none;
-      color: #7c3aed;
-      font-size: 20px;
-      font-weight: bold;
-    ">
-    @zanbilofficialll
-  </a>
-</footer>
+
 </body>
 </html>
